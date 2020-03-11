@@ -93,28 +93,57 @@ class StorageStream(DataClayObject):
         self.object_list.append(obj)
         self.q.put(obj)
 
-    @dclayMethod(return_="list")    
+    @dclayMethod(return_="anything")
+    def _get_single(self):
+        """Internal method for retrieving a single object.
+        
+        This object retrieves an object and handles correctly the presence of
+        the sentinel (which signals a closed stream).
+        """
+        if self.closed:
+            raise ValueError("The stream is closed")
+
+        obj = self.q.get()
+        if obj is self.sentinel:
+            # The queue has been closed, put again the sentinel and raise
+            self.q.put(obj)
+            raise ValueError("The stream is closed")
+        return obj
+
+    @dclayMethod(return_="anything")
+    def poll_one(self):
+        """Retrieve a single object from the stream.
+        
+        This may be a blocking operation.
+        """
+        return self._get_single()
+
+    @dclayMethod(return_="list", num_objects="int")
+    def poll_many(self, num_objects):
+        """Polls multiple objects from the stream and returns them as a list.
+        
+        This may be a blocking operation.
+
+        Note that if the stream is closed in-mid poll, the whole operation
+        will be aborted (no partial result will be returned).
+        """
+        return [self._get_single() for _ in range(num_objects)]
+
+    @dclayMethod(return_="anything", num_objects="int")
     def poll(self, num_objects=1):
         """Polls the given number of objects from the stream.
         
-        This is a blocking operation.
+        This may be a blocking operation.
 
-        Note that calling this method after close() is unsupported.
+        If num_objects=1, this behaves just like poll_one() and returns a
+        single element.
+
+        If num_objects>1, this behaves like poll_many and returns a list.
         """
-        if self.closed:
-            raise ValueError("The Stream is closed")
-
-        ret = list()
-        for _ in range(num_objects):
-            obj = self.q.get()
-
-            if obj is self.sentinel:
-                # The queue has been closed, put again the sentinel and raise
-                self.q.put(obj)
-                raise ValueError("The Stream is closed")
-
-            ret.append(obj)
-        return ret
+        if num_objects == 1:
+            return self._get_single()
+        else:
+            return [self._get_single() for _ in range(num_objects)]
 
     @dclayMethod()
     def close(self):
@@ -126,11 +155,6 @@ class StorageStream(DataClayObject):
         # The stream can now be offloaded from memory if required by HeapManager.
         self.set_memory_pinned(False)
 
-        # Note to the future troubleshooters:
-        # If there is an ongoing "slow" thread doing __iter__, and meanwhile a close() is 
-        # called and then the HeapManager decides to trigger and clean the stream before 
-        # the iteration finishes, the self.q (inside __iter__ method) is undefined behaviour.
-
     @dclayMethod(return_="bool")
     def is_closed(self):
         """Returns whether the stream is closed or not."""
@@ -139,14 +163,16 @@ class StorageStream(DataClayObject):
     @dclayMethod(_local=True)
     def __iter__(self):
         """Iterate the enqueued elements (not the persistent list)."""
-        value = self.q.get()
+        value = self._get_single()
+        # Not try-catching that because if you try to iter and it was *already* closed
+        # an exception is expected.
 
-        while value is not self.sentinel:
+        while True:
             yield value
-            value = self.q.get()
-
-        # Ensure that the sentinel remains in place (maybe there is another poll blocked?)
-        self.q.put(self.sentinel)
+            try:
+                value = self._get_single()
+            except ValueError:
+                return
 
     @dclayMethod(return_="anything")
     def get_all_elems(self):
