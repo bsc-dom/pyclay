@@ -2,8 +2,7 @@ from queue import Queue
 
 from dataclay import dclayMethod, DataClayObject
 
-# TODO: I wanted to name this QueueAndListStream and then rename, but registration doesn't cope well with renaming
-class StorageStream(DataClayObject):
+class QueueAndListStream(DataClayObject):
     """StorageStream implementation by means of a queue and a list.
 
     This class implements the interface of StorageStream and internally

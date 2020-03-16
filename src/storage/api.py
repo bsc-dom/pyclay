@@ -17,6 +17,12 @@ from dataclay.contrib.splitting import split
 from .models.storagedict import StorageDict
 from .models.storagelist import StorageList
 
+try:
+    from dc_collections.streams import QueueAndListStream as StorageStream
+except ImportError:
+    def StorageStream(*args, **kwargs):
+        raise NotImplementedError("The StorageStream data model has not been registered")
+
 __author__ = 'Alex Barcelo <alex.barcelo@bsc.es>'
 __copyright__ = '2015 Barcelona Supercomputing Center (BSC-CNS)'
 
