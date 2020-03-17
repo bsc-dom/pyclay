@@ -130,19 +130,8 @@ class QueueAndListStream(DataClayObject):
 
     @dclayMethod(return_="anything", num_objects="int")
     def poll(self, num_objects=1):
-        """Polls the given number of objects from the stream.
-        
-        This may be a blocking operation.
-
-        If num_objects=1, this behaves just like poll_one() and returns a
-        single element.
-
-        If num_objects>1, this behaves like poll_many and returns a list.
-        """
-        if num_objects == 1:
-            return self._get_single()
-        else:
-            return [self._get_single() for _ in range(num_objects)]
+        """Same as poll_many, but with default num_objects=1."""
+        return poll_many(num_objects)
 
     @dclayMethod()
     def close(self):
