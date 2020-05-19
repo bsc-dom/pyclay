@@ -100,6 +100,22 @@ class EEClient(object):
         self.channel = None
         self.ds_stub = None
 
+    def ds_batch_object_info(self, query_objects, query_flags):
+        request = dataservice_messages_pb2.BatchObjectInfoRequest(
+            queryObjects=query_objects,
+            queryFalgs=query_flags
+        )
+
+        try:
+            response = self.ds_stub.batchObjectInfo(request)
+        except RuntimeError as e:
+            raise e
+
+        if response.isException:
+            raise DataClayException(response.exceptionMessage)
+        
+        return response.objectsInfo
+
     def ds_deploy_metaclasses(self, namespace_name, deployment_pack):
         deployment_pack_dict = dict()
 

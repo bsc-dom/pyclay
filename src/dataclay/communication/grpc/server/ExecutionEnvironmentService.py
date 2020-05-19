@@ -73,6 +73,18 @@ class DataServiceEE(ds.DataServiceServicer):
         except Exception as ex:
             return self.get_exception_info(ex)
 
+    def batchObjectInfo(self, request, context):
+        logger.verbose("[batchObjectInfo] Retrieveing information for objects")
+
+        try:
+            query_objects = request.queryObjects
+            query_flags = request.queryFlags
+            obj_info = self.execution_environment.ds_batch_object_info(query_objects, query_flags)
+            return dataservice_messages_pb2.BatchObjectInfoResponse(objectsInfo=obj_info)
+        except Exception as ex:
+            return dataservice_messages_pb2.BatchObjectInfoResponse(
+                excInfo=self.get_exception_info(ex))
+
     def newPersistentInstance(self, request, context):
 
         try:

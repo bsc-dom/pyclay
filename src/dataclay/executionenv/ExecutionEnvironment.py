@@ -120,6 +120,19 @@ class ExecutionEnvironment(object):
         """
         setRuntime(self.runtime)
 
+    def ds_batch_object_info(self, query_objects, query_flags):
+        """Retrieve basic information for all the provided objects.
+
+        The caller will typically know that the objects are from this Execution
+        Environment, and will perform a single call in order to retrieve the
+        desired information.
+
+        :param query_objects: List of ObjectID.
+        :param query_flags: Which fields of information are requested.
+        :return: A list of ObjectInfo structures.
+        """
+        self.prepareThread()
+
     def ds_deploy_metaclasses(self, namespace, classes_map_yamls):
         """Deploy MetaClass containers to the Python Execution Environment.
     
