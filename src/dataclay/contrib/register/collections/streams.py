@@ -21,9 +21,11 @@ class QueueAndListStream(DataClayObject):
     @dclayMethod(alias="str", internal_stream_info="anything")
     def __init__(self, alias=None, internal_stream_info=None):
         """Initialize and persist the stream."""
+        # Ensure that the object is persistent and perform EE initialization
+        self.make_persistent(alias=alias)
+        self._init_in_ee()
 
-        # The following doesn't make a lot of sense, but follows closely the 
-        # implementation proposed by @cramonco.
+        # Following closely the implementation proposed by @cramonco.
         self.alias = alias
         self.stream_type = "PERSISTENT"
         self.access_mode = "AT_MOST_ONCE"
@@ -31,10 +33,6 @@ class QueueAndListStream(DataClayObject):
         # Initialize the list, empty
         self.object_list = list()
         self.closed = False
-
-        # Ensure that the object is persistent and perform EE initialization
-        self.make_persistent(alias=alias)
-        self._init_in_ee()
 
         self.id = self.getID()
 
@@ -131,7 +129,7 @@ class QueueAndListStream(DataClayObject):
     @dclayMethod(return_="anything", num_objects="int")
     def poll(self, num_objects=1):
         """Same as poll_many, but with default num_objects=1."""
-        return poll_many(num_objects)
+        return self.poll_many(num_objects)
 
     @dclayMethod()
     def close(self):
