@@ -490,7 +490,7 @@ def return_stack():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
 
-    return lines[0] + lines[1]
+    return "".join(lines)
 
 def prepare_bytes(varz):
     """Create the right bytes var for python2/3.
@@ -502,3 +502,17 @@ def prepare_bytes(varz):
     elif six.PY3:
         v = bytes(varz, "utf-8")
     return v
+
+
+def build_object_info_list(oi_list: list):
+    ret = list()
+    for oi in oi_list:
+        proto_oi = common_messages.ObjectInfo(
+            objectID=get_msg_id_object(oi.object_id),
+            isLoaded=oi.is_loaded,
+            isMaster=oi.is_master,
+            isLocal=oi.is_local
+        )
+        
+        ret.append(proto_oi)
+    return ret

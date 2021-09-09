@@ -20,6 +20,7 @@ from dataclay.communication.grpc.messages.common import common_messages_pb2
 from dataclay.communication.grpc.messages.dataservice import dataservice_messages_pb2
 from dataclay.exceptions.exceptions import DataClayException
 from dataclay.util.YamlParser import dataclay_yaml_load
+from dataclay.api import BOIFlags
 
 __author__ = 'Enrico La Sala <enrico.lasala@bsc.es>'
 __copyright__ = '2017 Barcelona Supercomputing Center (BSC-CNS)'
@@ -44,9 +45,20 @@ class DataServiceEE(ds.DataServiceServicer):
     def get_exception_info(self, ex):
         ex_message = None
         logger.warning("Exception produced type: %s", type(ex))
+
+        # This is only for Python 2 (deprecated)
         if hasattr(ex, "message"):
             ex_message = ex.message
             logger.warning("Exception produced with message:\n%s", ex_message)
+
+        # This is for Python 3
+        if hasattr(ex, "args"):
+            ex_message = ex.args[-1]
+            logger.warning("EEEException with #%d args; assuming the following is the message:\n%s", len(ex.args), ex_message)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Traceback of the exception being sent to the caller:\n%s",
+                         traceback.format_exc())
 
         try:
             ex_serialized = pickle.dumps(ex)
@@ -77,10 +89,10 @@ class DataServiceEE(ds.DataServiceServicer):
         logger.verbose("[batchObjectInfo] Retrieveing information for objects")
 
         try:
-            query_objects = request.queryObjects
-            query_flags = request.queryFlags
+            query_objects = map(Utils.get_id, request.queryObjects)
+            query_flags = set(map(lambda x: BOIFlags(x), request.queryFlags))
             obj_info = self.execution_environment.ds_batch_object_info(query_objects, query_flags)
-            return dataservice_messages_pb2.BatchObjectInfoResponse(objectsInfo=obj_info)
+            return dataservice_messages_pb2.BatchObjectInfoResponse(objectsInfo=Utils.build_object_info_list(obj_info))
         except Exception as ex:
             return dataservice_messages_pb2.BatchObjectInfoResponse(
                 excInfo=self.get_exception_info(ex))

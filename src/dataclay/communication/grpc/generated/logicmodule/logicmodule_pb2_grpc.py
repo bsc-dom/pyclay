@@ -370,6 +370,11 @@ class LogicModuleStub(object):
         request_serializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_common_dot_common__messages__pb2.EmptyMessage.SerializeToString,
         response_deserializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_common_dot_common__messages__pb2.GetNumObjectsResponse.FromString,
         )
+    self.batchObjectInfo = channel.unary_unary(
+        '/dataclay.communication.grpc.logicmodule.LogicModule/batchObjectInfo',
+        request_serializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_logicmodule_dot_logicmodule__messages__pb2.BatchObjectInfoRequest.SerializeToString,
+        response_deserializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_logicmodule_dot_logicmodule__messages__pb2.BatchObjectInfoResponse.FromString,
+        )
     self.setDataSetID = channel.unary_unary(
         '/dataclay.communication.grpc.logicmodule.LogicModule/setDataSetID',
         request_serializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_logicmodule_dot_logicmodule__messages__pb2.SetDataSetIDRequest.SerializeToString,
@@ -1028,6 +1033,13 @@ class LogicModuleServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def batchObjectInfo(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def setDataSetID(self, request, context):
     """Storage Location
     """
@@ -1602,6 +1614,11 @@ def add_LogicModuleServicer_to_server(servicer, server):
           servicer.getNumObjects,
           request_deserializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_common_dot_common__messages__pb2.EmptyMessage.FromString,
           response_serializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_common_dot_common__messages__pb2.GetNumObjectsResponse.SerializeToString,
+      ),
+      'batchObjectInfo': grpc.unary_unary_rpc_method_handler(
+          servicer.batchObjectInfo,
+          request_deserializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_logicmodule_dot_logicmodule__messages__pb2.BatchObjectInfoRequest.FromString,
+          response_serializer=dataclay_dot_communication_dot_grpc_dot_messages_dot_logicmodule_dot_logicmodule__messages__pb2.BatchObjectInfoResponse.SerializeToString,
       ),
       'setDataSetID': grpc.unary_unary_rpc_method_handler(
           servicer.setDataSetID,

@@ -64,9 +64,9 @@ class StringWrapper(DataClayPythonWrapper):
                 elif six.PY3:
                     ba = bytes(value, "utf-8")
             else:
-                raise TypeError("Unable to manage object of type `%s`" % type(ba))
+                raise TypeError("Unable to manage object of type `%s`" % type(value))
         else:
-            raise TypeError("Internal mode {} not recognized".format(self._mode))
+            raise TypeError("Internal mode %s not recognized" % self._mode)
 
         IntegerWrapper(32).write(io_file, len(ba))
         io_file.write(ba)

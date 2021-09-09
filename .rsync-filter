@@ -20,3 +20,4 @@
 - /venv/
 - .dockerignore
 - .pylintrc
+- .git

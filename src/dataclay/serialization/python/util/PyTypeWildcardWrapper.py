@@ -36,7 +36,7 @@ def safe_wait_if_compss_future(potential_future):
     real_type = type(potential_future)
 
     if real_type.__name__ == "Future" and \
-            real_type.__module__ == "pycompss.runtime.binding":
+            real_type.__module__.startswith("pycompss"):
         from pycompss.api.api import compss_wait_on
 
         logger.info("Received a `Future` PyCOMPSs object, waiting for the real object...")

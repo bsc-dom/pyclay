@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='dataclay.communication.grpc.common',
   syntax='proto3',
   serialized_options=_b('\n2es.bsc.dataclay.communication.grpc.messages.common'),
-  serialized_pb=_b('\nAdataclay/communication/grpc/messages/common/common_messages.proto\x12\"dataclay.communication.grpc.common\"\x1e\n\nCredential\x12\x10\n\x08password\x18\x01 \x01(\t\":\n\rParamOrReturn\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x17\n\x0fserializedParam\x18\x02 \x01(\x0c\"\x0e\n\x0c\x45mptyMessage\"\x93\x07\n\x1cSerializedParametersOrReturn\x12\x11\n\tnumParams\x18\x01 \x01(\x05\x12\x62\n\timmParams\x18\x02 \x03(\x0b\x32O.dataclay.communication.grpc.common.SerializedParametersOrReturn.ImmParamsEntry\x12\x64\n\nlangParams\x18\x03 \x03(\x0b\x32P.dataclay.communication.grpc.common.SerializedParametersOrReturn.LangParamsEntry\x12l\n\x0evolatileParams\x18\x04 \x03(\x0b\x32T.dataclay.communication.grpc.common.SerializedParametersOrReturn.VolatileParamsEntry\x12\x64\n\npersParams\x18\x05 \x03(\x0b\x32P.dataclay.communication.grpc.common.SerializedParametersOrReturn.PersParamsEntry\x1al\n\x0eImmParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12I\n\x05value\x18\x02 \x01(\x0b\x32:.dataclay.communication.grpc.common.ImmutableParamOrReturn:\x02\x38\x01\x1al\n\x0fLangParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12H\n\x05value\x18\x02 \x01(\x0b\x32\x39.dataclay.communication.grpc.common.LanguageParamOrReturn:\x02\x38\x01\x1av\n\x13VolatileParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12N\n\x05value\x18\x02 \x01(\x0b\x32?.dataclay.communication.grpc.common.ObjectWithDataParamOrReturn:\x02\x38\x01\x1an\n\x0fPersParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12J\n\x05value\x18\x02 \x01(\x0b\x32;.dataclay.communication.grpc.common.PersistentParamOrReturn:\x02\x38\x01\"*\n\x16ImmutableParamOrReturn\x12\x10\n\x08objbytes\x18\x01 \x01(\x0c\"\\\n\x17PersistentParamOrReturn\x12\x0b\n\x03oid\x18\x01 \x01(\t\x12\x0c\n\x04hint\x18\x02 \x01(\t\x12\x0f\n\x07\x63lassID\x18\x03 \x01(\t\x12\x15\n\rextDataClayID\x18\x04 \x01(\t\"\x9b\x01\n\x1bObjectWithDataParamOrReturn\x12\x0b\n\x03oid\x18\x01 \x01(\t\x12\x0f\n\x07\x63lassid\x18\x02 \x01(\t\x12L\n\x08metadata\x18\x03 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x10\n\x08objbytes\x18\x04 \x01(\x0c\"w\n\x15LanguageParamOrReturn\x12L\n\x08metadata\x18\x01 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x10\n\x08objbytes\x18\x02 \x01(\x0c\"\xbc\x04\n\x16\x44\x61taClayObjectMetaData\x12R\n\x04oids\x18\x01 \x03(\x0b\x32\x44.dataclay.communication.grpc.common.DataClayObjectMetaData.OidsEntry\x12Z\n\x08\x63lassids\x18\x02 \x03(\x0b\x32H.dataclay.communication.grpc.common.DataClayObjectMetaData.ClassidsEntry\x12T\n\x05hints\x18\x03 \x03(\x0b\x32\x45.dataclay.communication.grpc.common.DataClayObjectMetaData.HintsEntry\x12\x0f\n\x07numRefs\x18\x04 \x01(\x05\x12\x14\n\x0corigObjectID\x18\x05 \x01(\t\x12\x14\n\x0crootLocation\x18\x06 \x01(\t\x12\x16\n\x0eoriginLocation\x18\x07 \x01(\t\x12\x18\n\x10replicaLocations\x18\x08 \x03(\t\x12\r\n\x05\x61lias\x18\t \x01(\t\x12\x12\n\nisReadOnly\x18\n \x01(\x08\x1a+\n\tOidsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a/\n\rClassidsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a,\n\nHintsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"r\n\x14PersistentObjectInDB\x12L\n\x08metadata\x18\x01 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"j\n\x10RegistrationInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x0f\n\x07\x63lassID\x18\x02 \x01(\t\x12\x11\n\tsessionID\x18\x03 \x01(\t\x12\x11\n\tdataSetID\x18\x04 \x01(\t\x12\r\n\x05\x61lias\x18\x05 \x01(\t\"\\\n\x13\x46\x65\x64\x65ratedObjectInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x11\n\tclassName\x18\x02 \x01(\t\x12\x11\n\tnameSpace\x18\x03 \x01(\t\x12\r\n\x05\x61lias\x18\x04 \x03(\t\"\xd9\x01\n\x11GetTracesResponse\x12Q\n\x06traces\x18\x01 \x03(\x0b\x32\x41.dataclay.communication.grpc.common.GetTracesResponse.TracesEntry\x12\x42\n\x07\x65xcInfo\x18\x02 \x01(\x0b\x32\x31.dataclay.communication.grpc.common.ExceptionInfo\x1a-\n\x0bTracesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"[\n\rExceptionInfo\x12\x13\n\x0bisException\x18\x01 \x01(\x08\x12\x1b\n\x13serializedException\x18\x02 \x01(\x0c\x12\x18\n\x10\x65xceptionMessage\x18\x03 \x01(\x0c\"\x8f\x01\n\x0cMetaDataInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x12\n\nisReadOnly\x18\x02 \x01(\x08\x12\x11\n\tdatasetID\x18\x03 \x01(\t\x12\x13\n\x0bmetaclassID\x18\x04 \x01(\t\x12\x11\n\tlocations\x18\x05 \x03(\t\x12\r\n\x05\x61lias\x18\x06 \x01(\t\x12\x0f\n\x07ownerID\x18\x07 \x01(\t\"O\n\x13StorageLocationInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08hostname\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\x05\"\xad\x01\n\x18\x45xecutionEnvironmentInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08hostname\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\x05\x12;\n\x08language\x18\x05 \x01(\x0e\x32).dataclay.communication.grpc.common.Langs\x12\x1a\n\x12\x64\x61taClayInstanceID\x18\x06 \x01(\t\"<\n\x10\x44\x61taClayInstance\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05hosts\x18\x02 \x03(\t\x12\r\n\x05ports\x18\x03 \x03(\x05\"l\n\x15GetNumObjectsResponse\x12\x0f\n\x07numObjs\x18\x01 \x01(\x05\x12\x42\n\x07\x65xcInfo\x18\x02 \x01(\x0b\x32\x31.dataclay.communication.grpc.common.ExceptionInfo*6\n\x05Langs\x12\r\n\tLANG_NONE\x10\x00\x12\r\n\tLANG_JAVA\x10\x01\x12\x0f\n\x0bLANG_PYTHON\x10\x02\x42\x34\n2es.bsc.dataclay.communication.grpc.messages.commonb\x06proto3')
+  serialized_pb=_b('\nAdataclay/communication/grpc/messages/common/common_messages.proto\x12\"dataclay.communication.grpc.common\"\x1e\n\nCredential\x12\x10\n\x08password\x18\x01 \x01(\t\":\n\rParamOrReturn\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x17\n\x0fserializedParam\x18\x02 \x01(\x0c\"\x0e\n\x0c\x45mptyMessage\"\x93\x07\n\x1cSerializedParametersOrReturn\x12\x11\n\tnumParams\x18\x01 \x01(\x05\x12\x62\n\timmParams\x18\x02 \x03(\x0b\x32O.dataclay.communication.grpc.common.SerializedParametersOrReturn.ImmParamsEntry\x12\x64\n\nlangParams\x18\x03 \x03(\x0b\x32P.dataclay.communication.grpc.common.SerializedParametersOrReturn.LangParamsEntry\x12l\n\x0evolatileParams\x18\x04 \x03(\x0b\x32T.dataclay.communication.grpc.common.SerializedParametersOrReturn.VolatileParamsEntry\x12\x64\n\npersParams\x18\x05 \x03(\x0b\x32P.dataclay.communication.grpc.common.SerializedParametersOrReturn.PersParamsEntry\x1al\n\x0eImmParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12I\n\x05value\x18\x02 \x01(\x0b\x32:.dataclay.communication.grpc.common.ImmutableParamOrReturn:\x02\x38\x01\x1al\n\x0fLangParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12H\n\x05value\x18\x02 \x01(\x0b\x32\x39.dataclay.communication.grpc.common.LanguageParamOrReturn:\x02\x38\x01\x1av\n\x13VolatileParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12N\n\x05value\x18\x02 \x01(\x0b\x32?.dataclay.communication.grpc.common.ObjectWithDataParamOrReturn:\x02\x38\x01\x1an\n\x0fPersParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12J\n\x05value\x18\x02 \x01(\x0b\x32;.dataclay.communication.grpc.common.PersistentParamOrReturn:\x02\x38\x01\"*\n\x16ImmutableParamOrReturn\x12\x10\n\x08objbytes\x18\x01 \x01(\x0c\"\\\n\x17PersistentParamOrReturn\x12\x0b\n\x03oid\x18\x01 \x01(\t\x12\x0c\n\x04hint\x18\x02 \x01(\t\x12\x0f\n\x07\x63lassID\x18\x03 \x01(\t\x12\x15\n\rextDataClayID\x18\x04 \x01(\t\"\x9b\x01\n\x1bObjectWithDataParamOrReturn\x12\x0b\n\x03oid\x18\x01 \x01(\t\x12\x0f\n\x07\x63lassid\x18\x02 \x01(\t\x12L\n\x08metadata\x18\x03 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x10\n\x08objbytes\x18\x04 \x01(\x0c\"w\n\x15LanguageParamOrReturn\x12L\n\x08metadata\x18\x01 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x10\n\x08objbytes\x18\x02 \x01(\x0c\"\xbc\x04\n\x16\x44\x61taClayObjectMetaData\x12R\n\x04oids\x18\x01 \x03(\x0b\x32\x44.dataclay.communication.grpc.common.DataClayObjectMetaData.OidsEntry\x12Z\n\x08\x63lassids\x18\x02 \x03(\x0b\x32H.dataclay.communication.grpc.common.DataClayObjectMetaData.ClassidsEntry\x12T\n\x05hints\x18\x03 \x03(\x0b\x32\x45.dataclay.communication.grpc.common.DataClayObjectMetaData.HintsEntry\x12\x0f\n\x07numRefs\x18\x04 \x01(\x05\x12\x14\n\x0corigObjectID\x18\x05 \x01(\t\x12\x14\n\x0crootLocation\x18\x06 \x01(\t\x12\x16\n\x0eoriginLocation\x18\x07 \x01(\t\x12\x18\n\x10replicaLocations\x18\x08 \x03(\t\x12\r\n\x05\x61lias\x18\t \x01(\t\x12\x12\n\nisReadOnly\x18\n \x01(\x08\x1a+\n\tOidsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a/\n\rClassidsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a,\n\nHintsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"r\n\x14PersistentObjectInDB\x12L\n\x08metadata\x18\x01 \x01(\x0b\x32:.dataclay.communication.grpc.common.DataClayObjectMetaData\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"j\n\x10RegistrationInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x0f\n\x07\x63lassID\x18\x02 \x01(\t\x12\x11\n\tsessionID\x18\x03 \x01(\t\x12\x11\n\tdataSetID\x18\x04 \x01(\t\x12\r\n\x05\x61lias\x18\x05 \x01(\t\"\\\n\x13\x46\x65\x64\x65ratedObjectInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x11\n\tclassName\x18\x02 \x01(\t\x12\x11\n\tnameSpace\x18\x03 \x01(\t\x12\r\n\x05\x61lias\x18\x04 \x03(\t\"f\n\nObjectInfo\x12\x11\n\tbackendID\x18\x01 \x01(\t\x12\x10\n\x08objectID\x18\x02 \x01(\t\x12\x10\n\x08isLoaded\x18\x03 \x01(\x08\x12\x10\n\x08isMaster\x18\x04 \x01(\x08\x12\x0f\n\x07isLocal\x18\x05 \x01(\x08\"\xd9\x01\n\x11GetTracesResponse\x12Q\n\x06traces\x18\x01 \x03(\x0b\x32\x41.dataclay.communication.grpc.common.GetTracesResponse.TracesEntry\x12\x42\n\x07\x65xcInfo\x18\x02 \x01(\x0b\x32\x31.dataclay.communication.grpc.common.ExceptionInfo\x1a-\n\x0bTracesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"[\n\rExceptionInfo\x12\x13\n\x0bisException\x18\x01 \x01(\x08\x12\x1b\n\x13serializedException\x18\x02 \x01(\x0c\x12\x18\n\x10\x65xceptionMessage\x18\x03 \x01(\x0c\"\x8f\x01\n\x0cMetaDataInfo\x12\x10\n\x08objectID\x18\x01 \x01(\t\x12\x12\n\nisReadOnly\x18\x02 \x01(\x08\x12\x11\n\tdatasetID\x18\x03 \x01(\t\x12\x13\n\x0bmetaclassID\x18\x04 \x01(\t\x12\x11\n\tlocations\x18\x05 \x03(\t\x12\r\n\x05\x61lias\x18\x06 \x01(\t\x12\x0f\n\x07ownerID\x18\x07 \x01(\t\"O\n\x13StorageLocationInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08hostname\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\x05\"\xad\x01\n\x18\x45xecutionEnvironmentInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08hostname\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\x05\x12;\n\x08language\x18\x05 \x01(\x0e\x32).dataclay.communication.grpc.common.Langs\x12\x1a\n\x12\x64\x61taClayInstanceID\x18\x06 \x01(\t\"<\n\x10\x44\x61taClayInstance\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05hosts\x18\x02 \x03(\t\x12\r\n\x05ports\x18\x03 \x03(\x05\"l\n\x15GetNumObjectsResponse\x12\x0f\n\x07numObjs\x18\x01 \x01(\x05\x12\x42\n\x07\x65xcInfo\x18\x02 \x01(\x0b\x32\x31.dataclay.communication.grpc.common.ExceptionInfo*6\n\x05Langs\x12\r\n\tLANG_NONE\x10\x00\x12\r\n\tLANG_JAVA\x10\x01\x12\x0f\n\x0bLANG_PYTHON\x10\x02*H\n\x0fObjectInfoFlags\x12\x0c\n\x08OBJECTID\x10\x00\x12\x0c\n\x08ISLOADED\x10\x01\x12\x0c\n\x08ISMASTER\x10\x02\x12\x0b\n\x07ISLOCAL\x10\x03\x42\x34\n2es.bsc.dataclay.communication.grpc.messages.commonb\x06proto3')
 )
 
 _LANGS = _descriptor.EnumDescriptor(
@@ -45,15 +45,50 @@ _LANGS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3329,
-  serialized_end=3383,
+  serialized_start=3433,
+  serialized_end=3487,
 )
 _sym_db.RegisterEnumDescriptor(_LANGS)
 
 Langs = enum_type_wrapper.EnumTypeWrapper(_LANGS)
+_OBJECTINFOFLAGS = _descriptor.EnumDescriptor(
+  name='ObjectInfoFlags',
+  full_name='dataclay.communication.grpc.common.ObjectInfoFlags',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='OBJECTID', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ISLOADED', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ISMASTER', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ISLOCAL', index=3, number=3,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=3489,
+  serialized_end=3561,
+)
+_sym_db.RegisterEnumDescriptor(_OBJECTINFOFLAGS)
+
+ObjectInfoFlags = enum_type_wrapper.EnumTypeWrapper(_OBJECTINFOFLAGS)
 LANG_NONE = 0
 LANG_JAVA = 1
 LANG_PYTHON = 2
+OBJECTID = 0
+ISLOADED = 1
+ISMASTER = 2
+ISLOCAL = 3
 
 
 
@@ -884,6 +919,65 @@ _FEDERATEDOBJECTINFO = _descriptor.Descriptor(
 )
 
 
+_OBJECTINFO = _descriptor.Descriptor(
+  name='ObjectInfo',
+  full_name='dataclay.communication.grpc.common.ObjectInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='backendID', full_name='dataclay.communication.grpc.common.ObjectInfo.backendID', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='objectID', full_name='dataclay.communication.grpc.common.ObjectInfo.objectID', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='isLoaded', full_name='dataclay.communication.grpc.common.ObjectInfo.isLoaded', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='isMaster', full_name='dataclay.communication.grpc.common.ObjectInfo.isMaster', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='isLocal', full_name='dataclay.communication.grpc.common.ObjectInfo.isLocal', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2441,
+  serialized_end=2543,
+)
+
+
 _GETTRACESRESPONSE_TRACESENTRY = _descriptor.Descriptor(
   name='TracesEntry',
   full_name='dataclay.communication.grpc.common.GetTracesResponse.TracesEntry',
@@ -917,8 +1011,8 @@ _GETTRACESRESPONSE_TRACESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2614,
-  serialized_end=2659,
+  serialized_start=2718,
+  serialized_end=2763,
 )
 
 _GETTRACESRESPONSE = _descriptor.Descriptor(
@@ -954,8 +1048,8 @@ _GETTRACESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2442,
-  serialized_end=2659,
+  serialized_start=2546,
+  serialized_end=2763,
 )
 
 
@@ -999,8 +1093,8 @@ _EXCEPTIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2661,
-  serialized_end=2752,
+  serialized_start=2765,
+  serialized_end=2856,
 )
 
 
@@ -1072,8 +1166,8 @@ _METADATAINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2755,
-  serialized_end=2898,
+  serialized_start=2859,
+  serialized_end=3002,
 )
 
 
@@ -1124,8 +1218,8 @@ _STORAGELOCATIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2900,
-  serialized_end=2979,
+  serialized_start=3004,
+  serialized_end=3083,
 )
 
 
@@ -1190,8 +1284,8 @@ _EXECUTIONENVIRONMENTINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2982,
-  serialized_end=3155,
+  serialized_start=3086,
+  serialized_end=3259,
 )
 
 
@@ -1235,8 +1329,8 @@ _DATACLAYINSTANCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3157,
-  serialized_end=3217,
+  serialized_start=3261,
+  serialized_end=3321,
 )
 
 
@@ -1273,8 +1367,8 @@ _GETNUMOBJECTSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3219,
-  serialized_end=3327,
+  serialized_start=3323,
+  serialized_end=3431,
 )
 
 _SERIALIZEDPARAMETERSORRETURN_IMMPARAMSENTRY.fields_by_name['value'].message_type = _IMMUTABLEPARAMORRETURN
@@ -1315,6 +1409,7 @@ DESCRIPTOR.message_types_by_name['DataClayObjectMetaData'] = _DATACLAYOBJECTMETA
 DESCRIPTOR.message_types_by_name['PersistentObjectInDB'] = _PERSISTENTOBJECTINDB
 DESCRIPTOR.message_types_by_name['RegistrationInfo'] = _REGISTRATIONINFO
 DESCRIPTOR.message_types_by_name['FederatedObjectInfo'] = _FEDERATEDOBJECTINFO
+DESCRIPTOR.message_types_by_name['ObjectInfo'] = _OBJECTINFO
 DESCRIPTOR.message_types_by_name['GetTracesResponse'] = _GETTRACESRESPONSE
 DESCRIPTOR.message_types_by_name['ExceptionInfo'] = _EXCEPTIONINFO
 DESCRIPTOR.message_types_by_name['MetaDataInfo'] = _METADATAINFO
@@ -1323,6 +1418,7 @@ DESCRIPTOR.message_types_by_name['ExecutionEnvironmentInfo'] = _EXECUTIONENVIRON
 DESCRIPTOR.message_types_by_name['DataClayInstance'] = _DATACLAYINSTANCE
 DESCRIPTOR.message_types_by_name['GetNumObjectsResponse'] = _GETNUMOBJECTSRESPONSE
 DESCRIPTOR.enum_types_by_name['Langs'] = _LANGS
+DESCRIPTOR.enum_types_by_name['ObjectInfoFlags'] = _OBJECTINFOFLAGS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Credential = _reflection.GeneratedProtocolMessageType('Credential', (_message.Message,), {
@@ -1464,6 +1560,13 @@ FederatedObjectInfo = _reflection.GeneratedProtocolMessageType('FederatedObjectI
   # @@protoc_insertion_point(class_scope:dataclay.communication.grpc.common.FederatedObjectInfo)
   })
 _sym_db.RegisterMessage(FederatedObjectInfo)
+
+ObjectInfo = _reflection.GeneratedProtocolMessageType('ObjectInfo', (_message.Message,), {
+  'DESCRIPTOR' : _OBJECTINFO,
+  '__module__' : 'dataclay.communication.grpc.messages.common.common_messages_pb2'
+  # @@protoc_insertion_point(class_scope:dataclay.communication.grpc.common.ObjectInfo)
+  })
+_sym_db.RegisterMessage(ObjectInfo)
 
 GetTracesResponse = _reflection.GeneratedProtocolMessageType('GetTracesResponse', (_message.Message,), {
 

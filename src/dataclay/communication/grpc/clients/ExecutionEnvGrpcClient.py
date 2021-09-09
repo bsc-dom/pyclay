@@ -23,6 +23,7 @@ from dataclay.exceptions.exceptions import DataClayException
 from dataclay.util.YamlParser import dataclay_yaml_dump
 import dataclay.communication.grpc.messages.common.common_messages_pb2 as CommonMessages
 from dataclay.util import Configuration
+from dataclay.util.objectinfo import ObjectInfo
 
 __author__ = 'Enrico La Sala <enrico.lasala@bsc.es>'
 __copyright__ = '2017 Barcelona Supercomputing Center (BSC-CNS)'
@@ -101,9 +102,11 @@ class EEClient(object):
         self.ds_stub = None
 
     def ds_batch_object_info(self, query_objects, query_flags):
+        object_ids = map(Utils.get_msg_options['object'], query_objects)
+
         request = dataservice_messages_pb2.BatchObjectInfoRequest(
-            queryObjects=query_objects,
-            queryFalgs=query_flags
+            queryObjects=object_ids,
+            queryFlags=query_flags
         )
 
         try:
@@ -111,10 +114,23 @@ class EEClient(object):
         except RuntimeError as e:
             raise e
 
-        if response.isException:
-            raise DataClayException(response.exceptionMessage)
+        if response.excInfo.isException:
+            raise DataClayException(response.excInfo.exceptionMessage)
+
+        # Build the "native" type list from the gRPC list
+        ret = list()
+        for grpc_oi in response.objectsInfo:
+            # TODO: Once ObjectInfo is a dataclass, simplify this with the built-in constructor
+            oi = ObjectInfo()
+            oi.object_id=grpc_oi.objectID
+            oi.backend_id=grpc_oi.backendID
+            oi.is_loaded=grpc_oi.isLoaded
+            oi.is_master=grpc_oi.isMaster
+            oi.is_local=grpc_oi.isLocal
+
+            ret.append(oi)
         
-        return response.objectsInfo
+        return ret
 
     def ds_deploy_metaclasses(self, namespace_name, deployment_pack):
         deployment_pack_dict = dict()

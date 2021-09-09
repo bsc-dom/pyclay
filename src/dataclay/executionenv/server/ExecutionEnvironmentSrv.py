@@ -56,9 +56,9 @@ class ExecutionEnvironmentSrv(object):
         logger.info("Performing exit hook --persisting files")
         
         self.execution_environment.prepareThread()
-        self.execution_environment.get_runtime().stop_gc()
+        self.execution_environment.runtime.stop_gc()
         logger.info("Flushing all objects to disk")
-        self.execution_environment.get_runtime().flush_all()
+        self.execution_environment.runtime.flush_all()
         logger.info("Stopping runtime")
         logger.info("Notifying LM, current EE left")
         self.execution_environment.notify_execution_environment_shutdown()
@@ -83,7 +83,7 @@ class ExecutionEnvironmentSrv(object):
         lm_client = LMClient(settings.logicmodule_host, settings.logicmodule_port)
     
         # Leave the ready client to the LogicModule globally available
-        self.execution_environment.get_runtime().ready_clients["@LM"] = lm_client
+        self.execution_environment.runtime.ready_clients["@LM"] = lm_client
     
         # logger.info("local_ip %s returned", local_ip)
         return local_ip
@@ -93,7 +93,7 @@ class ExecutionEnvironmentSrv(object):
         self.execution_environment.prepareThread()
 
         logger.info("Start Autoregister with %s local_ip", local_ip)
-        lm_client = self.execution_environment.get_runtime().ready_clients["@LM"]
+        lm_client = self.execution_environment.runtime.ready_clients["@LM"]
 
         sl_found = False
         retries = 0
@@ -174,13 +174,13 @@ class ExecutionEnvironmentSrv(object):
         logger.info(f"Connected to StorageLocation {sl_name}!")
 
         # Leave the ready client to the Storage Location globally available
-        self.execution_environment.get_runtime().ready_clients["@STORAGE"] = storage_client
+        self.execution_environment.runtime.ready_clients["@STORAGE"] = storage_client
         storage_client.associate_execution_environment(execution_environment_id)
         
         settings.logicmodule_dc_instance_id = lm_client.get_dataclay_id()
         logger.verbose("DataclayInstanceID is %s, storing client in cache", settings.logicmodule_dc_instance_id)
 
-        self.execution_environment.get_runtime().ready_clients[settings.logicmodule_dc_instance_id] = self.execution_environment.get_runtime().ready_clients["@LM"]
+        self.execution_environment.runtime.ready_clients[settings.logicmodule_dc_instance_id] = self.execution_environment.runtime.ready_clients["@LM"]
 
     def start(self):
         """Start the dataClay server (Execution Environment).

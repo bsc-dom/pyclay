@@ -4,7 +4,11 @@ The `init` and `finish` functions are availble through the
 dataclay.api package.
 """
 
+import uuid
+from collections import defaultdict
+
 from dataclay.commonruntime.Settings import settings
+from dataclay.communication.grpc import Utils
 from dataclay.communication.grpc.clients.ExecutionEnvGrpcClient import EEClient
 from dataclay.communication.grpc.messages.common.common_messages_pb2 import LANG_PYTHON
 from dataclay.serialization.lib.SerializationLibUtils import SerializationLibUtilsSingleton
@@ -12,6 +16,8 @@ from dataclay.commonruntime.DataClayRuntime import DataClayRuntime
 from dataclay.commonruntime.RuntimeType import RuntimeType
 from dataclay.heap.ClientHeapManager import ClientHeapManager
 from dataclay.loader.ClientObjectLoader import ClientObjectLoader
+from dataclay.util.IdentityDict import IdentityDict
+
 
 # Sentinel-like object to catch some typical mistakes
 from dataclay.util.management.metadataservice.MetaDataInfo import MetaDataInfo
@@ -183,12 +189,68 @@ class ClientRuntime(DataClayRuntime):
             
         return self.call_execute_to_ds(instance, parameters, operation_name, exeenv_id, using_hint)
 
+    @staticmethod
+    def _batch_object_info_to_exeenv(object_ids, flags, execution_client):
+        # I intended to make this function async, but opening the pandora box
+        # of await/async is something that should not be done carelessly
+        return execution_client.ds_batch_object_info(object_ids, flags)
+
+    def batch_object_info(self, objects, flags, thorough):
+        """Perform all the batch_object_info calls (one per node)"""
+        if flags is None:
+            flags = list()
+
+        self.logger.debug("Processing a batch_object_info call with #%d objects", len(objects))
+
+        ret = IdentityDict()
+
+        if thorough:
+            obj_map = {object.get_object_id(): object for object in objects}
+
+            object_ids = obj_map.keys()
+            flags_int =  map(lambda x: x.value, flags)
+
+            # A thorough operation means to make a call to:
+            #  - The MetaDataService, to obtain all the data for cold objects
+            #  - All Execution Environment, to obtain the data for hot objects
+
+            # Correctness notes:
+            # This is a skeleton but has not been fully tested. The focus has been HPC
+            # and this _thorough_ implementation is left here for future improvement.
+            # The semantics on multiplicity (e.g. because of replicas, or because of 
+            # stale information from the MDS) is not addressed not discussed atm.
+
+            # Performance notes:
+            # Even while aknowledging that this won't be a lightning fast call, some
+            # improvements may be considered. The most obvious one is to make all the
+            # calls in parallel.
+            intermediate_res = self.ready_clients["@LM"].batch_object_info(object_ids, flags_int)
+
+            exeenv_map = self.get_execution_environments_info()
+
+            for backend_id, exeenv in exeenv_map.items():
+                try:
+                    execution_client = self.ready_clients[backend_id]
+                except KeyError:
+                    execution_client = EEClient(exeenv.hostname, exeenv.port)
+                    self.ready_clients[backend_id] = execution_client
+                
+                intermediate_res.extend(self._batch_object_info_to_exeenv(object_ids, flags_int, execution_client))
+
+            # TODO: now merge and return something correct
+        else:
+            # Use hints instead
+            for obj in objects:
+                ret[obj] = obj.get_hint()
+
+        return ret
+
     def get_operation_info(self, object_id, operation_name):
         dcc_extradata = self.get_object_by_id(object_id).get_class_extradata()
         stub_info = dcc_extradata.stub_info
         implementation_stub_infos = stub_info.implementations
         operation = implementation_stub_infos[operation_name]
-        return operation 
+        return operation
     
     def get_implementation_id(self, object_id, operation_name, implementation_idx=0):
         operation = self.get_operation_info(object_id, operation_name)

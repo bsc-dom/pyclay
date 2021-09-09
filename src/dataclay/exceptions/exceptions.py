@@ -9,8 +9,11 @@ __copyright__ = '2015 Barcelona Supercomputing Center (BSC-CNS)'
 
 class DataClayException(Exception):
     """Base class for exceptions in this module."""
-    pass
-
+    def __init__(self, message):
+        if isinstance(message, bytes):
+            message = message.decode("utf-8")
+        super().__init__(message)
+        
 
 class ImproperlyConfigured(DataClayException):
     """Raised when the settings are not well-formed."""

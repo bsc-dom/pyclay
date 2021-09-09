@@ -7,6 +7,7 @@ import uuid
 import traceback
 import time
 import os
+
 from dataclay.DataClayObject import DataClayObject
 from dataclay.commonruntime.Runtime import getRuntime, setRuntime
 from dataclay.commonruntime.Runtime import threadLocal
@@ -28,6 +29,7 @@ from dataclay.util.FileUtils import deploy_class
 from dataclay.util.classloaders import ClassLoader
 from dataclay.util.YamlParser import dataclay_yaml_load
 from dataclay.commonruntime.ExecutionEnvironmentRuntime import ExecutionEnvironmentRuntime
+from dataclay.api import BOIFlags
 from ctypes import c_void_p
 from dataclay.util import Configuration
 
@@ -37,6 +39,14 @@ __copyright__ = '2015 Barcelona Supercomputing Center (BSC-CNS)'
 from dataclay.util.management.metadataservice.RegistrationInfo import RegistrationInfo
 
 logger = logging.getLogger(__name__)
+
+
+# TODO: Once we deprecate 3.6, convert this to a **dataclass**
+class ObjectInfo:
+    object_id: uuid.UUID
+    is_loaded: bool = False
+    is_master: bool = False
+    is_local: bool = False
 
 
 class ExecutionEnvironment(object):
@@ -96,7 +106,7 @@ class ExecutionEnvironment(object):
         Notify LM current node left
         :return: None
         """
-        lm_client = getRuntime().ready_clients["@LM"]
+        lm_client = self.runtime.ready_clients["@LM"]
         lm_client.notify_execution_environment_shutdown(self.execution_environment_id)
 
     def get_execution_environment_id(self):
@@ -105,12 +115,6 @@ class ExecutionEnvironment(object):
         :return: execution environment id
         """
         return self.execution_environment_id
-
-    def get_runtime(self):
-        """
-        @return: Runtime of this Execution Environment 
-        """
-        return self.runtime
 
     def prepareThread(self):
         """ 
@@ -123,15 +127,39 @@ class ExecutionEnvironment(object):
     def ds_batch_object_info(self, query_objects, query_flags):
         """Retrieve basic information for all the provided objects.
 
-        The caller will typically know that the objects are from this Execution
-        Environment, and will perform a single call in order to retrieve the
-        desired information.
+        The caller will ask for a list of objects, and will perform a single 
+        call in order to retrieve the desired information.
 
         :param query_objects: List of ObjectID.
         :param query_flags: Which fields of information are requested.
         :return: A list of ObjectInfo structures.
         """
         self.prepareThread()
+        logger.debug("Attending a batch_object_info RPC")
+
+        object_info = list()
+
+        for obj_id in query_objects:
+            # Check hot objects means check from heap --which is fast
+            if BOIFlags.ISLOADED:
+                obj = self.runtime.get_from_heap(obj_id)
+                if obj is not None:
+                    # TODO: Once ObjectInfo is a dataclass, simplify this with the built-in constructor
+                    oi = ObjectInfo()
+                    oi.object_id=obj_id
+                    oi.is_loaded=True
+                    oi.is_master=True  # FIXME: preliminar proof of concept does not consider replicas
+                    oi.is_local=False
+
+                    object_info.append(oi)
+                else:
+                    # TODO: Once ObjectInfo is a dataclass, simplify this with the built-in constructor
+                    oi = ObjectInfo()
+                    oi.object_id=obj_id
+                    oi.is_local=False
+
+                    object_info.append(oi)
+        return object_info
 
     def ds_deploy_metaclasses(self, namespace, classes_map_yamls):
         """Deploy MetaClass containers to the Python Execution Environment.
@@ -203,11 +231,11 @@ class ExecutionEnvironment(object):
 
         self.prepareThread()
         logger.info("Getting MetaData for object {%s}", object_id)
-        return getRuntime().get_metadata(object_id)
-
+        return self.runtime.get_metadata(object_id)
+    
     def get_local_instance(self, object_id, retry=True):
         self.prepareThread()
-        return getRuntime().get_or_new_instance_from_db(object_id, retry)
+        return self.runtime.get_or_new_instance_from_db(object_id, retry)
 
     def get_from_db(self, object_id):
         """Get object directly from StorageLocation (DB).
@@ -217,7 +245,7 @@ class ExecutionEnvironment(object):
         :return: python object
         """
         self.prepareThread()
-        py_object = getRuntime().get_or_new_instance_from_db(object_id, True)
+        py_object = self.runtime.get_or_new_instance_from_db(object_id, True)
 
         if py_object is None:
             raise Exception("Object from DB returns None")
@@ -240,7 +268,7 @@ class ExecutionEnvironment(object):
         checking if loaded before returning value. Check race conditions with GC. 
         """
         if not instance.is_loaded():
-            getRuntime().load_object_from_db(instance, True)
+            self.runtime.load_object_from_db(instance, True)
 
         if implementation_name.startswith(DCLAY_GETTER_PREFIX):
             prop_name = implementation_name[len(DCLAY_GETTER_PREFIX):]
@@ -296,7 +324,7 @@ class ExecutionEnvironment(object):
             metadata.modify_hints(hints_mapping)
             # make persistent - session references
             try:
-                getRuntime().add_session_reference(object_id)
+                self.runtime.add_session_reference(object_id)
             except Exception as e:
                 # TODO: See exception in set_local_session
                 logger.debug("Trying to add_session_reference during store of a federated object"
@@ -333,7 +361,7 @@ class ExecutionEnvironment(object):
         object_id = instance.get_object_id()
 
         # NOTE! We are doing *two* remote calls, and wishlist => they work as a transaction
-        getRuntime().ready_clients["@STORAGE"].store_to_db(settings.environment_id, object_id, obj_bytes)
+        self.runtime.ready_clients["@STORAGE"].store_to_db(settings.environment_id, object_id, obj_bytes)
         # class_id = instance.get_class_extradata().class_id
         # reg_info = [object_id, class_id, instance.get_owner_session_id(), instance.get_dataset_id()]
 
@@ -343,7 +371,7 @@ class ExecutionEnvironment(object):
         reg_info = RegistrationInfo(object_id, dcc_extradata.class_id, instance.get_owner_session_id(), dataset_id, None)
         reg_infos.append(reg_info)
         try:
-            lm_client = getRuntime().ready_clients["@LM"]
+            lm_client = self.runtime.ready_clients["@LM"]
             lm_client.register_objects(reg_infos, settings.environment_id, LANG_PYTHON)
         except:
             # do nothing: alias exception
@@ -374,7 +402,7 @@ class ExecutionEnvironment(object):
             i = i + 1
         return DeserializationLibUtilsSingleton.deserialize_params(
             SerializedParametersOrReturn(num_params=1,
-                                         vol_objs=vol_objs), None, None, None, getRuntime())
+                                         vol_objs=vol_objs), None, None, None, self.runtime)
 
     def make_persistent(self, session_id, objects_to_persist):
         """ This function will deserialize make persistent "parameters" (i.e. object to persist
@@ -441,7 +469,7 @@ class ExecutionEnvironment(object):
             # FIXME: remote session is retaining the object (set during deserialization) but external session is NOT closed
             # TODO: add federation reference to object send ?? how is it working with replicas?
             if len(reg_infos) != 0:
-                getRuntime().ready_clients["@LM"].register_objects(reg_infos, self.execution_environment_id,
+                self.runtime.ready_clients["@LM"].register_objects(reg_infos, self.execution_environment_id,
                                                                    LANG_PYTHON)
 
             # No need to provide params specs or param order since objects are not language types
@@ -481,8 +509,8 @@ class ExecutionEnvironment(object):
             for serialized_obj in serialized_objs:
                 replica_locs = serialized_obj.metadata.replica_locations
                 for replica_loc in replica_locs:
-                    exec_env = getRuntime().get_execution_environment_info(replica_loc)
-                    if exec_env.dataclay_instance_id != getRuntime().get_dataclay_id():
+                    exec_env = self.runtime.get_execution_environment_info(replica_loc)
+                    if exec_env.dataclay_instance_id != self.runtime.get_dataclay_id():
                         if external_execution_env_id is not None and replica_loc != external_execution_env_id:
                             continue
                         objs_in_backend = None
@@ -528,7 +556,7 @@ class ExecutionEnvironment(object):
 
                     if instance.get_alias() is not None and instance.get_alias() != "":
                         logger.debug(f"Removing alias {instance.get_alias()}")
-                        self.get_runtime().delete_alias(instance)
+                        self.runtime.delete_alias(instance)
 
                 except Exception as ex:
                     traceback.print_exc()
@@ -561,7 +589,7 @@ class ExecutionEnvironment(object):
         if num_params > 0:
             params = DeserializationLibUtilsSingleton.deserialize_params(serialized_params_grpc_msg, None,
                                                                          operation.params,
-                                                                         operation.paramsOrder, getRuntime())
+                                                                         operation.paramsOrder, self.runtime)
         #TODO: check if any parameter is dataClay object and do not call __str__ in dClayObject could end up into a dead-lock
         #logger.debug(f"Parameters are {params}")
 
@@ -578,7 +606,7 @@ class ExecutionEnvironment(object):
                                                                          {"0": operation.returnType},
                                                                          ["0"],
                                                                          None,
-                                                                         getRuntime(),
+                                                                         self.runtime,
                                                                          True)  # No volatiles inside EEs
 
         logger.debug(f"--> Finished execution in {object_id} of operation {operation.name}")
@@ -597,14 +625,14 @@ class ExecutionEnvironment(object):
         :param dest_backend_id: ID of destination backend
         :return: API to connect to destination Execution environment with id provided
         """
-        backend = getRuntime().get_all_execution_environments_info()[dest_backend_id]
+        backend = self.runtime.get_all_execution_environments_info()[dest_backend_id]
         try:
-            client_backend = getRuntime().ready_clients[dest_backend_id]
+            client_backend = self.runtime.ready_clients[dest_backend_id]
         except KeyError:
             logger.verbose("Not found Client to ExecutionEnvironment {%s}!"
                            " Starting it at %s:%d", dest_backend_id, backend.hostname, backend.port)
             client_backend = EEClient(backend.hostname, backend.port)
-            getRuntime().ready_clients[dest_backend_id] = client_backend
+            self.runtime.ready_clients[dest_backend_id] = client_backend
         return client_backend
 
     def new_replica(self, session_id, object_id, dest_backend_id, recursive):
@@ -719,9 +747,9 @@ class ExecutionEnvironment(object):
         self.prepareThread()
         self.set_local_session(session_id)
         logger.debug("[==PutObject==] Updating object %s", into_object_id)
-        object_into = getRuntime().get_or_new_instance_from_db(into_object_id, False)
+        object_into = self.runtime.get_or_new_instance_from_db(into_object_id, False)
         object_from = \
-        DeserializationLibUtilsSingleton.deserialize_params_or_return(from_object, None, None, None, getRuntime())[0]
+        DeserializationLibUtilsSingleton.deserialize_params_or_return(from_object, None, None, None, self.runtime)[0]
         object_into.set_all(object_from)
         logger.debug("[==PutObject==] Updated object %s from object %s", into_object_id, object_from.get_object_id())
 
@@ -816,7 +844,7 @@ class ExecutionEnvironment(object):
         self.prepareThread()
 
         # ToDo: Manage better this try/catch
-        getRuntime().lock(oid)  # Race condition with gc: make sure GC does not CLEAN the object while retrieving/serializing it!
+        self.runtime.lock(oid)  # Race condition with gc: make sure GC does not CLEAN the object while retrieving/serializing it!
         try:
             current_obj = self.get_local_instance(oid, False)
             pending_objs = list()
@@ -828,11 +856,10 @@ class ExecutionEnvironment(object):
                         # already replicated
                         logger.debug(f"WARNING: Found already replicated object {oid}. Skipping")
                         return None
-
-
+    
             # Add object to result and obtained_objs for return and recursive
             obj_with_data = SerializationLibUtilsSingleton.serialize_dcobj_with_data(current_obj, pending_objs,
-                                                                                False, current_obj.get_hint(), getRuntime(), False)
+                                                                                False, current_obj.get_hint(), self.runtime, False)
 
             if dest_replica_backend_id is not None and update_replica_locs == 1:
                 current_obj.add_replica_location(dest_replica_backend_id)
@@ -847,7 +874,7 @@ class ExecutionEnvironment(object):
 
 
         finally:
-            getRuntime().unlock(oid)
+            self.runtime.unlock(oid)
         return obj_with_data
 
 
@@ -903,15 +930,15 @@ class ExecutionEnvironment(object):
             if dest_replica_backend_id is None or dest_replica_backend_id != backend_id:
 
                 logger.debug("[==GetObjectsInOtherBackend==] Get from other location, objects: %s", objects_to_get)
-                backend = getRuntime().get_all_execution_environments_info()[backend_id]
+                backend = self.runtime.get_all_execution_environments_info()[backend_id]
                 try:
-                    client_backend = getRuntime().ready_clients[backend_id]
+                    client_backend = self.runtime.ready_clients[backend_id]
                 except KeyError:
                     logger.verbose("[==GetObjectsInOtherBackend==] Not found Client to ExecutionEnvironment {%s}!"
                                    " Starting it at %s:%d", backend_id, backend.hostname, backend.port)
 
                     client_backend = EEClient(backend.hostname, backend.port)
-                    getRuntime().ready_clients[backend_id] = client_backend
+                    self.runtime.ready_clients[backend_id] = client_backend
 
                 cur_result = client_backend.ds_get_objects(session_id, objects_to_get, already_obtained_objs, recursive, dest_replica_backend_id,
                                                            update_replica_locs)
@@ -1050,10 +1077,10 @@ class ExecutionEnvironment(object):
                 try:
                     # Update bytes at memory object
                     logger.debug("[==Upsert==] Getting/Creating instance from upsert with id %s", object_id)
-                    instance = getRuntime().get_or_new_instance_from_db(object_id, False)
+                    instance = self.runtime.get_or_new_instance_from_db(object_id, False)
                     DeserializationLibUtilsSingleton.deserialize_object_with_data(cur_entry, instance, None,
-                                                                                  getRuntime(),
-                                                                                  getRuntime().get_session_id(), True)
+                                                                                  self.runtime,
+                                                                                  self.runtime.get_session_id(), True)
 
                     instance.set_dirty(True)
                     updated_objects_here.append(cur_entry)
@@ -1095,16 +1122,16 @@ class ExecutionEnvironment(object):
         # Now Call
         for backend_id, objects_to_update in objects_per_backend.items():
 
-            backend = getRuntime().ready_clients["@LM"].get_executionenvironment_info(backend_id, from_backend=True)
+            backend = self.runtime.ready_clients["@LM"].get_executionenvironment_info(backend_id, from_backend=True)
 
             try:
-                client_backend = getRuntime().ready_clients[backend_id]
+                client_backend = self.runtime.ready_clients[backend_id]
             except KeyError:
                 logger.verbose("[==GetObjectsInOtherBackend==] Not found Client to ExecutionEnvironment {%s}!"
                                " Starting it at %s:%d", backend_id, backend.hostname, backend.port)
 
                 client_backend = EEClient(backend.hostname, backend.port)
-                getRuntime().ready_clients[backend_id] = client_backend
+                self.runtime.ready_clients[backend_id] = client_backend
 
             client_backend.ds_upsert_objects(session_id, objects_to_update)
 
@@ -1168,13 +1195,13 @@ class ExecutionEnvironment(object):
             logger.debug("[==MoveObjects==] Finally moving OBJECTS: %s", objects_to_remove)
 
             try:
-                sl_client = getRuntime().ready_clients[dest_backend_id]
+                sl_client = self.runtime.ready_clients[dest_backend_id]
             except KeyError:
-                st_loc = getRuntime().get_all_execution_environments_info()[dest_backend_id]
+                st_loc = self.runtime.get_all_execution_environments_info()[dest_backend_id]
                 self.logger.debug("Not found in cache ExecutionEnvironment {%s}! Starting it at %s:%d",
                                   dest_backend_id, st_loc.hostname, st_loc.port)
                 sl_client = EEClient(st_loc.hostname, st_loc.port)
-                getRuntime().ready_clients[dest_backend_id] = sl_client
+                self.runtime.ready_clients[dest_backend_id] = sl_client
 
             sl_client.ds_store_objects(session_id, objects_to_move, True, None)
 
@@ -1182,10 +1209,10 @@ class ExecutionEnvironment(object):
             # Remove after store in order to avoid wrong executions during the movement :)
             # Remove all objects in all source locations different to dest. location
             # TODO: Check that remove is not necessary (G.C. Should do it?)
-            # getRuntime().ready_clients["@STORAGE"].ds_remove_objects(session_id, object_ids, recursive, True, dest_backend_id)
+            # self.runtime.ready_clients["@STORAGE"].ds_remove_objects(session_id, object_ids, recursive, True, dest_backend_id)
 
             for oid in objects_to_remove:
-                getRuntime().remove_metadata_from_cache(oid)
+                self.runtime.remove_metadata_from_cache(oid)
             logger.debug("[==MoveObjects==] Move finalized ")
 
         except Exception as e:
@@ -1196,7 +1223,7 @@ class ExecutionEnvironment(object):
     def update_refs(self, ref_counting):
         """ forward to SL """
         self.prepareThread()
-        getRuntime().ready_clients["@STORAGE"].update_refs(ref_counting)
+        self.runtime.ready_clients["@STORAGE"].update_refs(ref_counting)
 
     def get_retained_references(self):
         return self.runtime.get_retained_references()

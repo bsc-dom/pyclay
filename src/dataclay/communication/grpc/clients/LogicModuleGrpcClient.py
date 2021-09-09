@@ -25,6 +25,7 @@ from dataclay.communication.grpc.messages.logicmodule import logicmodule_message
 from dataclay.exceptions.exceptions import DataClayException
 from dataclay.util.YamlParser import dataclay_yaml_dump, dataclay_yaml_load
 from dataclay.util import Configuration
+from dataclay.util.objectinfo import ObjectInfo
 
 __author__ = 'Enrico La Sala <enrico.lasala@bsc.es>'
 __copyright__ = '2017 Barcelona Supercomputing Center (BSC-CNS)'
@@ -769,6 +770,32 @@ class LMClient(object):
             raise DataClayException(response.excInfo.exceptionMessage)
 
         return Utils.get_metadata_info(response.mdInfo)
+
+    def batch_object_info(self, query_objects, query_flags):
+        object_ids = map(Utils.get_msg_options['object'], query_objects)
+
+        request = logicmodule_messages_pb2.BatchObjectInfoRequest(
+            queryObjects=object_ids,
+            queryFlags=query_flags
+        )
+        lm_function = lambda request: self.lm_stub.batchObjectInfo.future(request=request, metadata=self.metadata_call)
+        response = self._call_logicmodule(request, lm_function)
+        if response.excInfo.isException:
+            raise DataClayException(response.excInfo.exceptionMessage)
+
+        # Build the "native" type list from the gRPC list
+        ret = list()
+        for grpc_oi in response.objectsInfo:
+            # TODO: Once ObjectInfo is a dataclass, simplify this with the built-in constructor
+            oi = ObjectInfo()
+            oi.object_id=grpc_oi.objectID
+            oi.backend_id=grpc_oi.backendID
+            oi.is_loaded=grpc_oi.isLoaded
+            oi.is_master=grpc_oi.isMaster
+            oi.is_local=grpc_oi.isLocal
+
+            ret.append(oi)
+        return ret
 
     # Methods for Execution Environment
 

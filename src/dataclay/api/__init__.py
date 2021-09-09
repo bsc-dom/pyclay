@@ -11,7 +11,7 @@ import warnings
 
 
 from dataclay import getRuntime
-from dataclay.DataClayObject import DataClayObject
+from dataclay.DataClayObject import DataClayObject, dclayMethod
 from dataclay.commonruntime.ClientRuntime import settings, LANG_PYTHON
 from dataclay.commonruntime.ClientRuntime import UNDEFINED_LOCAL as _UNDEFINED_LOCAL
 from dataclay.commonruntime.Initializer import initialize, _get_logging_dict_config
@@ -23,15 +23,27 @@ from dataclay.util.StubUtils import clean_babel_data
 from dataclay.commonruntime.Settings import unload_settings
 
 from time import sleep
+from enum import Enum
 
 # This will be populated during initialization
 LOCAL = _UNDEFINED_LOCAL
 
 __copyright__ = '2015 Barcelona Supercomputing Center (BSC-CNS)'
-__all__ = ["init", "finish", "DataClayObject"]
+__all__ = ["init", "finish", "DataClayObject", "dclayMethod"]
 logger = logging.getLogger('dataclay.api')
 _connection_initialized = False
 _initialized = False
+
+
+class BOIFlags(Enum):
+    """BatchObjectInfo call flags.
+    
+    This flag indicates how should the BatchObjectInfo call behave and what
+    information should it return.
+    """
+    OBJECTID = 0
+    ISLOADED = 1
+    ISMASTER = 2
 
 
 def is_initialized() -> bool:
@@ -146,6 +158,10 @@ def get_backend_id(hostname, port):
         if backend.hostname == hostname and backend.port == port:
             return backend.id
     return None
+
+
+def batch_object_info(objects, flags=None, thorough=False):
+    return getRuntime().batch_object_info(objects, flags, thorough)
 
 
 def register_dataclay(exthostname, extport):
@@ -371,8 +387,6 @@ def finish_tracing():
                 getRuntime().deactivate_tracing(True)
 
 
-
-            
 def finish():
     global _initialized
     if not _initialized:
