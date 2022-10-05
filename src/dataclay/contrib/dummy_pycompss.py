@@ -25,7 +25,13 @@ OUT = None
 FILE_IN = None
 FILE_OUT = None
 FILE_INOUT = None
+COLLECTION_IN = None
+COLLECTION_OUT = None
+COLLECTION_INOUT = None
 CONCURRENT = None
+
+Depth = 1
+Type = 2
 
 
 def task(*args, **kwargs):

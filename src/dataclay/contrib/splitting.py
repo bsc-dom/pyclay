@@ -1,7 +1,7 @@
 
 """ Class description goes here. """
 
-from collections import defaultdict
+from itertools import cycle
 
 import logging
 
@@ -38,21 +38,38 @@ logger = logging.getLogger(__name__)
 ###############################################################################
 
 
-class SplitCallResult(defaultdict):
+class SplitCallResult:
     """Helper class for returning a coherent result on split calls."""
-    def __init__(self, split_class):
-        self.__split_class = split_class
+    def __init__(self, split_class, multiplicity=1):
+        self.split_class = split_class
+        self.multiplicity = multiplicity
+        self.kv = dict()
+        self.partitions = list()
 
         # split_class should derive from DataClayObject **and**
         # be a registered class (this last bit is not asserted).
         assert issubclass(split_class, DataClayObject)
         super().__init__()
-    
-    def __missing__(self, key):
-        """The difference with defaultdict is that we are using the key."""
-        split_object = self.__split_class(key)
-        self[key] = split_object
-        return split_object
+
+    def add_by_ee(self, ee_key, obj_idx, obj):
+        if ee_key not in self.kv:
+            if self.multiplicity > 1:
+                new_partitions = [self.split_class(ee_key) for _ in range(self.multiplicity)]
+
+                self.kv[ee_key] = cycle(new_partitions)
+                self.partitions.extend(new_partitions)
+                partition = next(self.kv[ee_key])
+            else:
+                partition = self.split_class(ee_key)
+
+                self.kv[ee_key] = partition
+                self.partitions.append(partition)
+        elif self.multiplicity > 1:
+            partition = next(self.kv[ee_key])
+        else:
+            partition = self.kv[ee_key]
+
+        partition.add_object(obj_idx, obj)
 
 
 def _test_and_coerce_for_pobj(obj):
@@ -106,31 +123,31 @@ def split(iterable, **split_options):
         return split_by_rows(iterable, **split_options)
 
 
-def _split_helper(indexes, objects, split_class):    
+def _split_helper(indexes, objects, split_class, **split_options):    
     boi = batch_object_info(objects)
 
+    multiplicity = split_options.get("multiplicity", 1)
+
     if split_class is None:
-        result = SplitCallResult(splitting.GenericSplit)
+        result = SplitCallResult(splitting.GenericSplit, multiplicity=multiplicity)
     elif isinstance(split_class, str):
-        result = SplitCallResult(getattr(splitting, split_class))
+        result = SplitCallResult(getattr(splitting, split_class), multiplicity=multiplicity)
     else:
-        result = SplitCallResult(split_class)
+        result = SplitCallResult(split_class, multiplicity=multiplicity)
 
     # TODO: Check if everything below is useful and generic (e.g. for WorkStealingSplit)
 
     for idx, obj in zip(indexes, objects):
         ee = boi[obj]
-        result[ee].add_object(idx, obj)
+        result.add_by_ee(ee, idx, obj)
 
-    for ee, split_object in result.items():
-        split_object.make_persistent(backend_id=ee)
+    split_objects = result.partitions
 
-    split_objects = result.values()
-    # Apparently silly for double looping, but we want a controlled persistence
-    # **and** then we want each split to know its brothers. That last part cannot be
-    # safely done before all of them are persistent.
-    for split_object in split_objects:
-        split_object.split_brothers = split_objects
+    # TODO: This should be asynchronous / parallel
+    for partition in split_objects:
+        partition.make_persistent(backend_id=partition.backend)
+
+    # Deprecating split_brothers as it incurs in a non-trivial performance penalty, allegedly
 
     return split_objects
 
@@ -168,7 +185,7 @@ def split_nd(gaggle, split_class=None, **split_options):
     indexes, objects = gather_objects(gaggle)
 
     return _split_helper(indexes, objects, split_class)
-    
+
 
 def split_1d(gaggle, split_class=None, **split_options):
     """Perform a split on a n-dimensional structure containing persistent objects.
@@ -179,7 +196,7 @@ def split_1d(gaggle, split_class=None, **split_options):
     indexes = range(len(gaggle))
     objects = [obj for _, obj in map(_test_and_coerce_for_pobj, gaggle)]
 
-    return _split_helper(indexes, objects, split_class)
+    return _split_helper(indexes, objects, split_class, **split_options)
 
 
 # This function repeats a lot of code from the _split_helper, but there was no
@@ -190,6 +207,8 @@ def split_by_rows(gaggle, split_class=None, **split_options):
 
     Note that the input structure (`gaggle`) is expected to be a list or list-like.
     """
+    multiplicity = split_options.get("multiplicity", 1)
+
     # Gaggle may contain futures, let's coerce that
     rows = list()
     for row in gaggle:
@@ -201,27 +220,25 @@ def split_by_rows(gaggle, split_class=None, **split_options):
     boi = batch_object_info(objects_to_consider)
 
     if split_class is None:
-        result = SplitCallResult(splitting.GenericSplit)
+        result = SplitCallResult(splitting.GenericSplit, multiplicity=multiplicity)
     elif isinstance(split_class, str):
-        result = SplitCallResult(getattr(splitting, split_class))
+        result = SplitCallResult(getattr(splitting, split_class), multiplicity=multiplicity)
     else:
-        result = SplitCallResult(split_class)
+        result = SplitCallResult(split_class, multiplicity=multiplicity)
 
     # TODO: Check if everything below is useful and generic (e.g. for WorkStealingSplit)
 
     for idx, row in enumerate(rows):
         ee = boi[row[0]]
-        result[ee].add_object(idx, row)
+        result.add_by_ee(ee, idx, row)
 
-    for ee, split_object in result.items():
-        split_object.make_persistent(backend_id=ee)
+    split_objects = result.partitions
 
-    split_objects = result.values()
-    # Apparently silly for double looping, but we want a controlled persistence
-    # **and** then we want each split to know its brothers. That last part cannot be
-    # safely done before all of them are persistent.
-    for split_object in split_objects:
-        split_object.split_brothers = split_objects
+    # TODO: This should be asynchronous / parallel
+    for partition in split_objects:
+        partition.make_persistent(backend_id=partition.backend)
+
+    # Deprecating split_brothers as it incurs in a non-trivial performance penalty, allegedly
 
     return split_objects
 
@@ -302,4 +319,4 @@ class SplittableCollectionMixin(object):
                  _local=True)
     def split(self, split_class=None):
         from dataclay.contrib.splitting import split_1d
-        split_1d(self.get_chunks(), split_class=split_class)
+        return split_1d(self.get_chunks(), split_class=split_class)
