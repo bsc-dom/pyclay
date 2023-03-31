@@ -9,6 +9,8 @@
 
 [![Test Pypi](https://img.shields.io/badge/testpypi-2.8.dev-green)](https://test.pypi.org/project/dataClay/)
 
+**This repository has been merged into [bsc-dom/dataclay](https://github.com/bsc-dom/dataclay)**
+
 # dataClay Python codebase
 
 This repository holds the `pyclay` Python package. This package is used both
